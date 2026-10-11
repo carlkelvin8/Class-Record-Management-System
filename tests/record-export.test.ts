@@ -15,6 +15,7 @@ it("exports all matching server pages in order and retains filters", async () =>
   remote.rpc.mockImplementation(async (_name, args) => ({
     error: null,
     data: {
+      info: { revision: 1 },
       total: 205,
       learners: Array.from({ length: args.p_page === 2 ? 5 : 100 }, (_, i) => ({
         id: args.p_page * 100 + i,
@@ -44,6 +45,7 @@ it("rejects a failed page instead of silently producing a partial export", async
   remote.rpc.mockReset();
   remote.rpc.mockResolvedValueOnce({
     data: {
+      info: { revision: 1 },
       total: 101,
       learners: [],
       scores: [],
@@ -58,5 +60,42 @@ it("rejects a failed page instead of silently producing a partial export", async
   });
   await expect(getRecordExport("class", options)).rejects.toThrow(
     "Unable to fetch next page",
+  );
+});
+
+it("rejects mixed revisions during a multi-page export", async () => {
+  remote.rpc.mockReset();
+  const data = {
+    total: 101,
+    info: { revision: 1 },
+    learners: Array.from({ length: 100 }, (_, id) => ({ id })),
+    scores: [],
+    termGrades: [],
+    finalGrades: [],
+  };
+  remote.rpc.mockResolvedValueOnce({ data, error: null });
+  remote.rpc.mockResolvedValueOnce({
+    data: { ...data, info: { revision: 2 }, learners: [{ id: 100 }] },
+    error: null,
+  });
+  await expect(getRecordExport("class", options)).rejects.toThrow(
+    "Class changed during export",
+  );
+});
+it("rejects incomplete or duplicated export rows", async () => {
+  remote.rpc.mockReset();
+  remote.rpc.mockResolvedValue({
+    data: {
+      total: 2,
+      info: { revision: 1 },
+      learners: [{ id: 1 }, { id: 1 }],
+      scores: [],
+      termGrades: [],
+      finalGrades: [],
+    },
+    error: null,
+  });
+  await expect(getRecordExport("class", options)).rejects.toThrow(
+    "Export pages were incomplete",
   );
 });

@@ -26,3 +26,17 @@ Raw source addresses, maxima, metadata/configuration inputs, source formulas and
 The workbooks bucket is private. Paths have exactly four segments: user UUID / class UUID / import batch UUID / encoded filename. Policies require user prefix, owned parent class and an owned import batch for the same class. INSERT, SELECT and DELETE are allowed only under those checks; object updates are not allowed. Browser download uses createSignedUrl with 60-second expiry. Anonymous object reads and cross-teacher forged path prefixes are denied. Original retention is optional and occurs after the atomic database import, since Storage and PostgreSQL cannot share one transaction.
 
 The frontend receives only the publishable key. No service key, admin credentials or database password appears in VITE variables. Development seed data is entirely synthetic. Production seed inclusion is intentionally omitted in the hosted setup instructions.
+
+## Deleted records
+
+Migration 008 snapshots a learner or assessment and associated scores before deleting the active rows. The private deleted_records table allows owners to read their own class history; writes run through owner-checked RPCs. Restore locks the class and checks revision, duplicate constraints, parent references and current assessment maxima. It restores everything atomically or changes nothing. Restored scores increment their versions, so old editors cannot overwrite restored data. Restored history remains private; no automatic purge is implemented. Deletions before this migration have no snapshots.
+
+## Duplicate files and export consistency
+
+The import wrapper serializes new imports by owner and fingerprint, requires allow_duplicate_file=true for an intentional second class, and retains confirmation-token idempotency. The internal import function cannot be called by authenticated or anonymous clients. Fingerprint lookup uses an owner/fingerprint index. Existing-class reimport still requires explicit learner mappings and a matching class revision.
+
+Multi-page exports compare class revision and total on every page, then verify unique learner IDs and completeness. The CSV uses assessment metadata from the fetched revision. A concurrent class edit causes an actionable retry error instead of a partial or mixed export.
+
+## Credential rotation
+
+A service-role key and database password were shared in the conversation. The project owner must rotate these in Supabase, update private deployment secrets, and revoke the old credentials. Never add these credentials to VITE variables, commits or documentation. The app uses the publishable key and per-teacher access policies.

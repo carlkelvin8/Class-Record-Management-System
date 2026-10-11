@@ -1,3 +1,4 @@
+import { DeletedRecords } from "../components/DeletedRecords";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -77,12 +78,14 @@ function ScoreCell({
   assessment,
   classId,
   onSaved,
+  onCommitted,
 }: {
   score?: Score;
   learner: Enrollment;
   assessment: Assessment;
   classId: string;
   onSaved: () => Promise<void>;
+  onCommitted: () => void;
 }) {
   const cancelNextSave = useRef(false);
   const [text, setText] = useState(
@@ -126,6 +129,7 @@ function ScoreCell({
       });
       setEditing(false);
       await onSaved();
+      onCommitted();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -478,6 +482,8 @@ export function ClassRecord() {
     [assessmentForm, setAssessmentForm] = useState(false);
   const [page, setPage] = useState(0),
     [pageSize, setPageSize] = useState(10);
+  const [saveNotice, setSaveNotice] = useState("");
+  useEffect(() => setSaveNotice(""), [id, term]);
   const [selectedLearner, setSelectedLearner] = useState<Enrollment | null>(
     null,
   );
@@ -586,6 +592,9 @@ export function ClassRecord() {
                       s.assessment_id === a.id,
                   )}
                   onSaved={refresh}
+                  onCommitted={() =>
+                    setSaveNotice(`${row.original.name} / ${a.name}: saved`)
+                  }
                 />
               ),
             })),
@@ -669,6 +678,11 @@ export function ClassRecord() {
         <ArrowLeft size={14} />
         My classes
       </Link>
+      <DeletedRecords
+        classId={id!}
+        revision={b.info.revision}
+        onSaved={refresh}
+      />
       <PageTitle
         title={b.info.section}
         description={
@@ -687,6 +701,12 @@ export function ClassRecord() {
               setExportError("");
               try {
                 const b = await getRecordExport(id!, options);
+                const exportAssessments = b.assessments
+                  .filter(
+                    (a) =>
+                      a.term_id === b.terms.find((t) => t.number === term)?.id,
+                  )
+                  .sort((a, b) => a.ordinal - b.ordinal);
                 const grade = (l: Enrollment) =>
                   b.termGrades.find(
                     (g) => g.enrollment_id === l.id && g.number === term,
@@ -696,7 +716,9 @@ export function ClassRecord() {
                   [
                     "LRN",
                     "Name",
-                    ...aa.map((a) => a.name + " (max " + a.maximum + ")"),
+                    ...exportAssessments.map(
+                      (a) => a.name + " (max " + a.maximum + ")",
+                    ),
                     "WW total",
                     "WW PS",
                     "WW WS",
@@ -718,7 +740,7 @@ export function ClassRecord() {
                     return [
                       l.lrn,
                       l.name,
-                      ...aa.map(
+                      ...exportAssessments.map(
                         (a) =>
                           b.scores.find(
                             (s) =>
@@ -758,6 +780,11 @@ export function ClassRecord() {
       />
       <ClassNav id={id!} active="" />
       <ErrorBox error={q.error || exportError} />
+      {saveNotice && (
+        <p role="status" className="mb-3 text-sm text-emerald-700">
+          {saveNotice}
+        </p>
+      )}
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex rounded-lg border border-border bg-white p-1">
           {[1, 2, 3].map((t) => (

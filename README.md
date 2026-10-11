@@ -6,19 +6,19 @@ React + TypeScript + Vite application with Supabase Auth, PostgreSQL, RPC import
 
 Requirements: Node.js 22.12 or newer, npm, Docker Desktop running with Linux containers. Supabase CLI is used through npx. Run commands from this directory.
 
-~~~powershell
+```powershell
 npm ci
 npx supabase start
 npx supabase db reset
 npx supabase status
 Copy-Item .env.example .env.local
-~~~
+```
 
 Edit .env.local. Set VITE_SUPABASE_URL to the local API URL from status (normally http://127.0.0.1:54321). Set VITE_SUPABASE_PUBLISHABLE_KEY to the publishable key shown by the local CLI; older local CLI versions label this public key anon. Never use the secret/service_role key. DATABASE_URL is used only by local database verification, never the browser. No credentials are checked in.
 
-~~~powershell
+```powershell
 npm run dev
-~~~
+```
 
 Open http://127.0.0.1:5173. Local Studio: http://127.0.0.1:54323. The local-only seed creates teacher@example.test and other.teacher@example.test with password DemoClass123!. The first account has a synthetic class with completed, failing and incomplete records; the second demonstrates a separate workspace. Real reference learners are never seeded or committed.
 
@@ -30,29 +30,29 @@ Create a project, link it using npx supabase link --project-ref YOUR_PROJECT_REF
 
 ## Verification
 
-~~~powershell
+```powershell
 npm run typecheck
 npm test
 npm run build
 # Against a RUNNING, MIGRATED local Supabase database:
 npm run test:db
-~~~
+```
 
 npm test executes extraction, CSV mapping, grading, pagination, export and database/RLS tests. The database suite normally uses PGlite (actual PostgreSQL engine in WASM), with minimal Auth/Storage schema fixtures. It executes all migration files unchanged, then tests their SQL functions, views, ownership policies and permissions. This is not a mock implementation of the grading or importer.
 
 npm run test:db executes that same suite against local Supabase PostgreSQL using DATABASE_URL or the default port 54322. It wraps tests in a transaction, isolates failed statements with savepoints, and rolls everything back. It refuses nonlocal database URLs. For a customized local connection:
 
-~~~powershell
+```powershell
 $env:DATABASE_URL = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 npm run test:db
-~~~
+```
 
 The reference extraction test reads SALAZAR.xlsx from Downloads on this machine when present. Else it is explicitly skipped. To run it elsewhere:
 
-~~~powershell
+```powershell
 $env:REFERENCE_WORKBOOK = 'C:\path\to\SALAZAR.xlsx'
 npm test
-~~~
+```
 
 The source workbook must not be added to Git. The extraction test compares numerical evidence without logging learner names or LRNs.
 
@@ -80,7 +80,7 @@ CSV cannot preserve workbook tabs/formulas/grading configuration. The UI offers 
 
 ## Current verification and limits
 
-Typecheck and production build pass; all 38 tests pass. The reference audit compares 325 cached Term 1 calculation values with zero mismatches. See [the verification report](docs/verification.md) for exact results and limitations. Automated tests cover the actual reference extraction, matching available cached Term 1 grades, identifiers, blank/zero, duplicate detection, exam subweights, every transmutation boundary, one/two/three-term finals, rollback, idempotency, reimport strategies, stale score updates, all-table cross-teacher denial and Storage object policies.
+Typecheck and production build pass; all 44 tests pass. The reference audit compares 325 cached Term 1 calculation values with zero mismatches. See [the verification report](docs/verification.md) for exact results and limitations. Automated tests cover the actual reference extraction, matching available cached Term 1 grades, identifiers, blank/zero, duplicate detection, exam subweights, every transmutation boundary, one/two/three-term finals, rollback, idempotency, reimport strategies, stale score updates, all-table cross-teacher denial and Storage object policies.
 
 The local Docker service suite was not available during initial verification. The PostgreSQL functions and policies are tested with PGlite; migrations have also been applied to the configured hosted Supabase project. Authenticated browser checks cover dashboard layouts, class pagination, edit controls, delete confirmations, and workbook review through final confirmation. Run the local Supabase commands, test:db and test:api above to verify the complete local Auth, Storage and HTTP integration suite. Historical reports in docs describe the checks available when each report was written.
 
@@ -90,8 +90,16 @@ No uploaded macros or arbitrary formulas are evaluated. Parsing occurs in the br
 
 After local Supabase is running, seeded, and .env.local is configured:
 
-~~~powershell
+```powershell
 npm run test:api
-~~~
+```
 
 This signs in as the two synthetic seed teachers and exercises real Auth, PostgREST RPC/import/edit/read APIs, rollback, idempotency, private Storage uploads, cross-teacher access denial and signed URL expiry. It creates only a synthetic temporary class and removes that class/file in cleanup using the local-only DATABASE_URL. It refuses remote API/database URLs. A failed assertion exits nonzero.
+
+## Recovery and import safeguards
+
+Deleted learners and assessments can be restored from **Deleted records / Restore** in their class. Their original scores return in the same transaction, with incremented score versions. If another required learner or assessment is also deleted, restore that other record first. Records deleted before migration 008 cannot be recovered by this feature.
+
+Repeated workbooks are detected before confirmation. Choose an existing class to update, or explicitly approve a separate copy. The server also checks the file fingerprint to prevent concurrent accidental duplicate imports. Dashboard counts and averages come from one owner-scoped aggregate RPC. CSV exports reject mixed class revisions or incomplete pages and use the fetched assessment metadata.
+
+Apply migrations 008 through 011, in order, to existing deployments. The combined setup SQL is for empty projects only.

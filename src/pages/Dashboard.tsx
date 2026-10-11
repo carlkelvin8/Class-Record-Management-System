@@ -1,6 +1,6 @@
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Link } from "react-router-dom";
-import { useQueries } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Users,
   TrendingUp,
@@ -22,7 +22,7 @@ import {
   CartesianGrid,
   Cell,
 } from "recharts";
-import { useClasses, getBundle } from "../lib/api";
+import { useClasses, rpc } from "../lib/api";
 import {
   Card,
   Button,
@@ -30,14 +30,39 @@ import {
   ErrorBox,
   EmptyState,
 } from "../components/common";
+interface DashboardSummary {
+  classes: {
+    info: { id: string; section: string; subject: string; grade_level: string };
+    learnerCount: number;
+  }[];
+  students: number;
+  term: number | null;
+  final: number | null;
+  incompleteCount: number;
+  belowCount: number;
+  bins: { label: string; count: number }[];
+  incomplete: { name: string; section: string; id: string }[];
+  below: { name: string; section: string; id: string }[];
+  assessment: { name: string; average: number | null; entered: number }[];
+}
+const emptySummary: DashboardSummary = {
+  classes: [],
+  students: 0,
+  term: null,
+  final: null,
+  incompleteCount: 0,
+  belowCount: 0,
+  bins: [],
+  incomplete: [],
+  below: [],
+  assessment: [],
+};
 const motionQuery = "(prefers-reduced-motion: reduce)";
 const subscribeMotion = (notify: () => void) => {
   const media = window.matchMedia(motionQuery);
   media.addEventListener("change", notify);
   return () => media.removeEventListener("change", notify);
 };
-const avg = (n: number[]) =>
-  n.length ? n.reduce((a, b) => a + b, 0) / n.length : null;
 const fmt = (n: number | null) => (n === null ? "—" : n.toFixed(1));
 export function Dashboard() {
   const reducedMotion = useSyncExternalStore(
@@ -47,108 +72,29 @@ export function Dashboard() {
   );
   const classes = useClasses(),
     [selected, setSelected] = useState("all");
-  const queries = useQueries({
-    queries: (classes.data ?? [])
-      .filter((c) => !c.archived && (selected === "all" || c.id === selected))
-      .map((c) => ({
-        queryKey: ["class", c.id],
-        queryFn: () => getBundle(c.id),
-      })),
-  });
-  const bundles = queries.flatMap((q) => (q.data ? [q.data] : []));
-  const m = useMemo(() => {
-    const term = bundles.flatMap((b) =>
-      b.termGrades
-        .filter(
-          (g) =>
-            !g.result.incomplete &&
-            !g.result.provisional &&
-            g.result.grade !== null,
-        )
-        .map((g) => g.result.grade!),
-    );
-    const finals = bundles.flatMap((b) =>
-      b.finalGrades
-        .filter(
-          (g) =>
-            !g.result.incomplete &&
-            !g.result.provisional &&
-            g.result.final !== null,
-        )
-        .map((g) => g.result.final!),
-    );
-    const bins = [
-      { label: "60–64", lo: 60, hi: 64 },
-      { label: "65–74", lo: 65, hi: 74 },
-      { label: "75–79", lo: 75, hi: 79 },
-      { label: "80–89", lo: 80, hi: 89 },
-      { label: "90–100", lo: 90, hi: 100 },
-    ].map((r) => ({
-      ...r,
-      count: term.filter((g) => g >= r.lo && g <= r.hi).length,
-    }));
-    const incomplete = bundles.flatMap((b) =>
-      b.learners
-        .filter(
-          (l) =>
-            b.termGrades.some(
-              (g) =>
-                g.enrollment_id === l.id &&
-                (g.result.incomplete || g.result.provisional),
-            ) ||
-            b.finalGrades.some(
-              (g) =>
-                g.enrollment_id === l.id &&
-                (g.result.incomplete || g.result.provisional),
-            ),
-        )
-        .map((l) => ({ name: l.name, section: b.info.section, id: b.info.id })),
-    );
-    const below = bundles.flatMap((b) =>
-      b.learners
-        .filter((l) =>
-          b.termGrades.some(
-            (g) =>
-              g.enrollment_id === l.id &&
-              !g.result.incomplete &&
-              !g.result.provisional &&
-              g.result.grade !== null &&
-              g.result.grade < b.config.passing_threshold,
-          ),
-        )
-        .map((l) => ({ name: l.name, section: b.info.section, id: b.info.id })),
-    );
-    const assessment = bundles.flatMap((b) =>
-      b.assessments.map((a) => {
-        const scores = b.scores.filter(
-          (s) => s.assessment_id === a.id && s.value !== null,
-        );
-        return {
-          name: b.info.section + " · " + a.name,
-          average: avg(scores.map((s) => (s.value! / a.maximum) * 100)),
-          entered: scores.length,
-        };
+  const query = useQuery({
+    queryKey: [
+      "dashboard",
+      selected,
+      classes.data?.map((c) => [c.id, c.revision, c.archived]),
+    ],
+    queryFn: () =>
+      rpc<DashboardSummary>("dashboard_summary", {
+        p_class: selected === "all" ? null : selected,
       }),
-    );
-    return {
-      students: bundles.reduce((s, b) => s + b.learners.length, 0),
-      term: avg(term),
-      final: avg(finals),
-      bins,
-      incomplete,
-      below,
-      assessment,
-    };
-  }, [bundles]);
-  const error = classes.error || queries.find((q) => q.error)?.error;
-  const complete = Math.max(0, m.students - m.incomplete.length);
+    enabled: !!classes.data,
+  });
+  const m = query.data ?? emptySummary;
+  const bundles = m.classes;
+  const error = classes.error || query.error;
+  const complete = Math.max(0, m.students - m.incompleteCount);
   const completion = m.students ? Math.round((complete / m.students) * 100) : 0;
   const date = new Intl.DateTimeFormat("en", {
     month: "long",
     day: "numeric",
     year: "numeric",
   }).format(new Date());
-  const pending = classes.isLoading || queries.some((q) => q.isLoading);
+  const pending = classes.isLoading || query.isLoading;
   return (
     <div className="desk-dashboard">
       <div className="desk-topline">
@@ -272,7 +218,7 @@ export function Dashboard() {
               },
               {
                 label: "Records to review",
-                value: m.incomplete.length,
+                value: m.incompleteCount,
                 detail: "Incomplete or provisional",
                 Icon: AlertCircle,
               },
@@ -319,7 +265,7 @@ export function Dashboard() {
                 <div className="desk-class-tile-foot">
                   <span>
                     <Users size={13} />
-                    {b.learners.length} learners
+                    {b.learnerCount} learners
                   </span>
                   <span>
                     Open record <ArrowRight size={13} />
@@ -434,7 +380,7 @@ export function Dashboard() {
                   <i className="review-dot" />
                   Need review
                 </span>
-                <strong>{m.incomplete.length}</strong>
+                <strong>{m.incompleteCount}</strong>
               </div>
               <p className="desk-readiness-note">
                 A record is ready when all applicable grades are complete and
@@ -485,7 +431,7 @@ export function Dashboard() {
                 <AlertCircle size={20} />
               </div>
               <div className="desk-review-total">
-                <strong>{m.below.length}</strong>
+                <strong>{m.belowCount}</strong>
                 <p>
                   learners below the
                   <br />
@@ -493,7 +439,7 @@ export function Dashboard() {
                 </p>
               </div>
               <div className="desk-review-list">
-                {m.below.length ? (
+                {m.belowCount ? (
                   m.below.map((l, i) => (
                     <Link key={i} to={"/classes/" + l.id}>
                       <span>
@@ -512,7 +458,7 @@ export function Dashboard() {
               </div>
               <div className="desk-review-footer">
                 <span>Review incomplete records</span>
-                <strong>{m.incomplete.length}</strong>
+                <strong>{m.incompleteCount}</strong>
               </div>
               <div className="desk-review-list compact">
                 {m.incomplete.slice(0, 5).map((l, i) => (

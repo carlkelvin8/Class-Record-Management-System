@@ -154,6 +154,7 @@ export function buildPayload(
   target: Bundle | undefined,
   strategy: Strategy,
   allowMissing: boolean,
+  allowDuplicateFile = false,
 ) {
   const included = d.learners.filter((l) => l.included);
   return {
@@ -161,6 +162,7 @@ export function buildPayload(
     expected_revision: target?.info.revision ?? null,
     strategy,
     allow_missing_lrn: allowMissing,
+    allow_duplicate_file: allowDuplicateFile,
     allow_duplicate_names: Boolean(d.allow_duplicate_names),
     info: d.info,
     config: d.config,

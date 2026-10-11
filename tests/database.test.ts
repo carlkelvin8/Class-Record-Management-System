@@ -28,7 +28,7 @@ function payload() {
     info,
     config,
     filename: "synthetic.xlsx",
-    fingerprint: "synthetic-hash",
+    fingerprint: randomUUID(),
     learners: [
       {
         key: "L1",
@@ -784,5 +784,206 @@ describe("teacher isolation, RPC permissions and private Storage", () => {
       expect(js.grade).not.toBeNull();
       expect(js.incomplete).toBe(false);
     }
+  });
+});
+
+describe("Recovery and import safeguards", () => {
+  async function rev(id: string) {
+    return (
+      await db.query<{ revision: number }>(
+        "select revision from public.classes where id=$1",
+        [id],
+      )
+    ).rows[0].revision;
+  }
+  it("restores deleted learners and scores, rejects stale edits and repeated restores", async () => {
+    await asTeacher(db, teacherA);
+    const id = (await call(payload())).class_id;
+    const learner = (
+      await db.query<{ id: string }>(
+        "select id from public.class_enrollments where class_id=$1 and source_key='L1'",
+        [id],
+      )
+    ).rows[0].id;
+    const before = (
+      await db.query<{ id: string; value: number; version: number }>(
+        "select id,value,version from public.scores where enrollment_id=$1 order by id",
+        [learner],
+      )
+    ).rows;
+    const old = await rev(id);
+    await db.query("select public.delete_record($1,$2,'learner',$3)", [
+      id,
+      old,
+      learner,
+    ]);
+    expect(
+      (
+        await db.query("select id from public.scores where enrollment_id=$1", [
+          learner,
+        ])
+      ).rows,
+    ).toHaveLength(0);
+    const deleted = (
+      await db.query<{ id: string }>(
+        "select id from public.deleted_records where class_id=$1",
+        [id],
+      )
+    ).rows[0].id;
+    await expect(
+      db.query("select public.restore_record($1,$2,$3)", [id, old, deleted]),
+    ).rejects.toThrow("Class changed");
+    await asTeacher(db, teacherB);
+    expect(
+      (
+        await db.query(
+          "select id from public.deleted_records where class_id=$1",
+          [id],
+        )
+      ).rows,
+    ).toHaveLength(0);
+    await expect(
+      db.query("select public.restore_record($1,$2,$3)", [
+        id,
+        old + 1,
+        deleted,
+      ]),
+    ).rejects.toThrow("access denied");
+    await asTeacher(db, teacherA);
+    await db.query("select public.restore_record($1,$2,$3)", [
+      id,
+      await rev(id),
+      deleted,
+    ]);
+    const after = (
+      await db.query<{ id: string; value: number; version: number }>(
+        "select id,value,version from public.scores where enrollment_id=$1 order by id",
+        [learner],
+      )
+    ).rows;
+    expect(after).toEqual(
+      before.map((s) => ({ ...s, version: s.version + 1 })),
+    );
+    await expect(
+      db.query("select public.restore_record($1,$2,$3)", [
+        id,
+        await rev(id),
+        deleted,
+      ]),
+    ).rejects.toThrow("already restored");
+  });
+  it("restores assessments, and rolls back restore when another parent remains deleted", async () => {
+    const id = (await call(payload())).class_id;
+    const learner = (
+      await db.query<{ id: string }>(
+        "select id from public.class_enrollments where class_id=$1 and source_key='L1'",
+        [id],
+      )
+    ).rows[0].id;
+    const assessment = (
+      await db.query<{ id: string }>(
+        "select id from public.assessments where class_id=$1 and source_key='WW'",
+        [id],
+      )
+    ).rows[0].id;
+    await db.query("select public.delete_record($1,$2,'learner',$3)", [
+      id,
+      await rev(id),
+      learner,
+    ]);
+    await db.query("select public.delete_record($1,$2,'assessment',$3)", [
+      id,
+      await rev(id),
+      assessment,
+    ]);
+    const bins = (
+      await db.query<{ id: string; kind: string }>(
+        "select id,kind from public.deleted_records where class_id=$1",
+        [id],
+      )
+    ).rows;
+    await expect(
+      db.query("select public.restore_record($1,$2,$3)", [
+        id,
+        await rev(id),
+        bins.find((b) => b.kind === "learner")!.id,
+      ]),
+    ).rejects.toThrow("Restore the other deleted");
+    expect(
+      (
+        await db.query("select id from public.class_enrollments where id=$1", [
+          learner,
+        ])
+      ).rows,
+    ).toHaveLength(0);
+    await db.query("select public.restore_record($1,$2,$3)", [
+      id,
+      await rev(id),
+      bins.find((b) => b.kind === "assessment")!.id,
+    ]);
+    await db.query("select public.restore_record($1,$2,$3)", [
+      id,
+      await rev(id),
+      bins.find((b) => b.kind === "learner")!.id,
+    ]);
+    expect(
+      (
+        await db.query(
+          "select id from public.scores where enrollment_id=$1 and assessment_id=$2",
+          [learner, assessment],
+        )
+      ).rows,
+    ).toHaveLength(1);
+  });
+  it("blocks accidental duplicate files, permits explicit copies and preserves idempotent retry", async () => {
+    const p = payload(),
+      token = randomUUID();
+    const first = await call(p, token);
+    expect((await call(p, token)).class_id).toBe(first.class_id);
+    await expect(call(p)).rejects.toThrow("already imported");
+    const copy = { ...p, allow_duplicate_file: true };
+    expect((await call(copy)).class_id).not.toBe(first.class_id);
+    await expect(
+      db.query(
+        "select public.import_class_record_internal($1::jsonb,$2::uuid)",
+        [JSON.stringify(copy), randomUUID()],
+      ),
+    ).rejects.toThrow("permission denied");
+  });
+  it("aggregates dashboard without leaking another teacher's records", async () => {
+    const id = (await call(payload())).class_id;
+    const result = (
+      await db.query<{
+        result: {
+          students: number;
+          classes: unknown[];
+          incompleteCount: number;
+          assessment: unknown[];
+          bins: { label: string; count: number }[];
+        };
+      }>("select public.dashboard_summary($1) result", [id])
+    ).rows[0].result;
+    expect(result.students).toBe(2);
+    expect(result.classes).toHaveLength(1);
+    expect(result.incompleteCount).toBe(2);
+    expect(result.assessment).toHaveLength(5);
+    expect(result.bins.map((b) => b.label)).toEqual([
+      "60\u201364",
+      "65\u201374",
+      "75\u201379",
+      "80\u201389",
+      "90\u2013100",
+    ]);
+    await asTeacher(db, teacherB);
+    const other = (
+      await db.query<{ result: typeof result }>(
+        "select public.dashboard_summary($1) result",
+        [id],
+      )
+    ).rows[0].result;
+    expect(other.students).toBe(0);
+    expect(other.classes).toEqual([]);
+    expect(other.assessment).toEqual([]);
+    await asTeacher(db, teacherA);
   });
 });

@@ -41,8 +41,8 @@ export function DeleteRecord({
         >
           <p className="font-medium">Delete {name}?</p>
           <p className="mt-1 text-xs leading-5">
-            This permanently removes this {kind} and its associated scores.
-            Grades will recalculate. This cannot be undone.
+            This moves this {kind} and its associated scores to Deleted records.
+            Grades will recalculate. You can restore it from this class.
           </p>
           <ErrorBox error={error} />
           <div className="mt-3 flex gap-2">

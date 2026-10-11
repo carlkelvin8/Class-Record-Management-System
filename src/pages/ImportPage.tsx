@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Upload,
   FileSpreadsheet,
@@ -50,6 +50,21 @@ export function ImportPage() {
     [scoreTerm, setScoreTerm] = useState(1),
     [changeFilter, setChangeFilter] = useState("all"),
     [dragging, setDragging] = useState(false);
+  const [allowDuplicateFile, setAllowDuplicateFile] = useState(false);
+  const duplicates = useQuery({
+    queryKey: ["import-duplicates", d?.fingerprint],
+    enabled: !!d,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("import_batches")
+        .select("class_id,filename,created_at")
+        .eq("fingerprint", d!.fingerprint)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw Error(error.message);
+      return data ?? [];
+    },
+  });
   const existing = useBundle(target === "new" ? undefined : target);
   const [confirmation, setConfirmation] = useState<{
     token: string;
@@ -63,6 +78,7 @@ export function ImportPage() {
   };
   const upload = async (f: File) => {
     setBusy(true);
+    setAllowDuplicateFile(false);
     setError("");
     setD(null);
     setCsv(null);
@@ -263,6 +279,63 @@ export function ImportPage() {
               setCsv(null);
             }}
           />
+        </>
+      )}
+      {d && !confirmation && (
+        <>
+          <ErrorBox error={duplicates.error} />
+          {!!duplicates.data?.length && (
+            <Card className="mb-4 border-amber-200 bg-amber-50 p-5">
+              <h2 className="font-semibold">
+                This workbook has already been imported
+              </h2>
+              <p className="mt-1 text-sm">
+                Choose the existing class below to update its record, or
+                explicitly create a separate copy.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {[...new Set(duplicates.data.map((b) => b.class_id))].map(
+                  (cid) => (
+                    <Button
+                      key={cid}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setTarget(cid);
+                        setStrategy("keep");
+                        setAllowDuplicateFile(false);
+                        edit({
+                          ...d,
+                          learners: d.learners.map((l) => ({
+                            ...l,
+                            enrollment_id: undefined,
+                          })),
+                        });
+                      }}
+                    >
+                      Update{" "}
+                      {classes.data?.find((c) => c.id === cid)?.section ??
+                        "existing class"}
+                    </Button>
+                  ),
+                )}
+              </div>
+              {target === "new" && (
+                <label className="mt-4 flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={allowDuplicateFile}
+                    onChange={(e) => {
+                      setAllowDuplicateFile(e.target.checked);
+                      setReviewed(false);
+                      setConfirmation(null);
+                    }}
+                  />
+                  I want to create another class from this same workbook.
+                </label>
+              )}
+            </Card>
+          )}
         </>
       )}
       {d && !confirmation && (
@@ -922,6 +995,11 @@ export function ImportPage() {
             <div className="mt-5">
               <Button
                 disabled={
+                  duplicates.isLoading ||
+                  !!duplicates.error ||
+                  (target === "new" &&
+                    !!duplicates.data?.length &&
+                    !allowDuplicateFile) ||
                   !reviewed ||
                   !!plan?.errors.length ||
                   busy ||
@@ -936,6 +1014,7 @@ export function ImportPage() {
                       existing.data,
                       strategy,
                       allowMissing,
+                      allowDuplicateFile,
                     ),
                     plan,
                   });

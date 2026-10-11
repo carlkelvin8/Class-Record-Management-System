@@ -129,10 +129,22 @@ export async function getRecordExport(id: string, options: RecordOptions) {
   const first = await getRecordPage(id, { ...options, page: 0, pageSize: 100 });
   for (let page = 1; page * 100 < first.total; page++) {
     const next = await getRecordPage(id, { ...options, page, pageSize: 100 });
+    if (
+      next.info.revision !== first.info.revision ||
+      next.total !== first.total
+    ) {
+      throw Error("Class changed during export. Please try exporting again.");
+    }
     first.learners.push(...next.learners);
     first.scores.push(...next.scores);
     first.termGrades.push(...next.termGrades);
     first.finalGrades.push(...next.finalGrades);
+  }
+  if (
+    first.learners.length !== first.total ||
+    new Set(first.learners.map((l) => l.id)).size !== first.total
+  ) {
+    throw Error("Export pages were incomplete. Please try exporting again.");
   }
   return first;
 }
