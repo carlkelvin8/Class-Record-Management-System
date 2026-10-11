@@ -1,0 +1,50 @@
+{
+  "name": "class-record-system",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --configLoader runner",
+    "build": "tsc --noEmit && vite build --configLoader runner",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --configLoader runner",
+    "test:db": "node scripts/test-db.mjs",
+    "preview": "vite preview --host 127.0.0.1 --configLoader runner",
+    "test:api": "node --env-file=.env.local scripts/test-api.mjs",
+    "format": "prettier --write src tests scripts *.ts *.js *.json *.html"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.0",
+    "@tanstack/react-query": "^5.90.0",
+    "@tanstack/react-table": "^8.21.3",
+    "@radix-ui/react-slot": "^1.2.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.3.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.9.0",
+    "recharts": "^3.2.0",
+    "papaparse": "^5.5.3",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "decimal.js": "^10.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@types/papaparse": "^5.3.16",
+    "@types/node": "^24.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.4",
+    "tailwindcss": "^3.4.17",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "@electric-sql/pglite": "^0.3.14",
+    "pg": "^8.16.3",
+    "@types/pg": "^8.15.5",
+    "prettier": "^3.6.2"
+  }
+}

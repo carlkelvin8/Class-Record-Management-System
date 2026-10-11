@@ -1,0 +1,723 @@
+{
+  "rules_version": "salazar-v1",
+  "resolved": true,
+  "weights": {
+    "ww": 20,
+    "pt": 50,
+    "ex": 30
+  },
+  "subweights": {
+    "ST1": 30,
+    "ST2": 30,
+    "TE": 40
+  },
+  "applicable_terms": [1, 2, 3],
+  "units_per_term": 2,
+  "units_per_year": 6,
+  "passing_threshold": 75,
+  "ranges": [
+    {
+      "lower": 99.5,
+      "upper": 100,
+      "grade": 100,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B7:D7"
+      }
+    },
+    {
+      "lower": 98.32,
+      "upper": 99.49,
+      "grade": 99,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B8:D8"
+      }
+    },
+    {
+      "lower": 97.14,
+      "upper": 98.30999999999999,
+      "grade": 98,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B9:D9"
+      }
+    },
+    {
+      "lower": 95.96,
+      "upper": 97.13,
+      "grade": 97,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B10:D10"
+      }
+    },
+    {
+      "lower": 94.78,
+      "upper": 95.94999999999999,
+      "grade": 96,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B11:D11"
+      }
+    },
+    {
+      "lower": 93.6,
+      "upper": 94.77,
+      "grade": 95,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B12:D12"
+      }
+    },
+    {
+      "lower": 92.42,
+      "upper": 93.58999999999999,
+      "grade": 94,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B13:D13"
+      }
+    },
+    {
+      "lower": 91.24,
+      "upper": 92.41,
+      "grade": 93,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B14:D14"
+      }
+    },
+    {
+      "lower": 90.06,
+      "upper": 91.22999999999999,
+      "grade": 92,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B15:D15"
+      }
+    },
+    {
+      "lower": 88.88,
+      "upper": 90.05,
+      "grade": 91,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B16:D16"
+      }
+    },
+    {
+      "lower": 87.7,
+      "upper": 88.86999999999999,
+      "grade": 90,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B17:D17"
+      }
+    },
+    {
+      "lower": 86.52,
+      "upper": 87.69,
+      "grade": 89,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B18:D18"
+      }
+    },
+    {
+      "lower": 85.34,
+      "upper": 86.50999999999999,
+      "grade": 88,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B19:D19"
+      }
+    },
+    {
+      "lower": 84.16,
+      "upper": 85.33,
+      "grade": 87,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B20:D20"
+      }
+    },
+    {
+      "lower": 82.98,
+      "upper": 84.14999999999999,
+      "grade": 86,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B21:D21"
+      }
+    },
+    {
+      "lower": 81.8,
+      "upper": 82.97,
+      "grade": 85,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B22:D22"
+      }
+    },
+    {
+      "lower": 80.62,
+      "upper": 81.78999999999999,
+      "grade": 84,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B23:D23"
+      }
+    },
+    {
+      "lower": 79.44,
+      "upper": 80.61,
+      "grade": 83,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B24:D24"
+      }
+    },
+    {
+      "lower": 78.25999999999999,
+      "upper": 79.42999999999999,
+      "grade": 82,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B25:D25"
+      }
+    },
+    {
+      "lower": 77.07999999999998,
+      "upper": 78.24999999999999,
+      "grade": 81,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B26:D26"
+      }
+    },
+    {
+      "lower": 75.89999999999998,
+      "upper": 77.06999999999998,
+      "grade": 80,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B27:D27"
+      }
+    },
+    {
+      "lower": 74.71999999999997,
+      "upper": 75.88999999999997,
+      "grade": 79,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B28:D28"
+      }
+    },
+    {
+      "lower": 73.53999999999996,
+      "upper": 74.70999999999997,
+      "grade": 78,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B29:D29"
+      }
+    },
+    {
+      "lower": 72.35999999999996,
+      "upper": 73.52999999999996,
+      "grade": 77,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B30:D30"
+      }
+    },
+    {
+      "lower": 71.17999999999995,
+      "upper": 72.34999999999995,
+      "grade": 76,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B31:D31"
+      }
+    },
+    {
+      "lower": 69.99999999999994,
+      "upper": 71.16999999999994,
+      "grade": 75,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B32:D32"
+      }
+    },
+    {
+      "lower": 65.34,
+      "upper": 69.98999999999994,
+      "grade": 74,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B33:D33"
+      }
+    },
+    {
+      "lower": 60.67,
+      "upper": 65.33,
+      "grade": 73,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B34:D34"
+      }
+    },
+    {
+      "lower": 56.01,
+      "upper": 60.660000000000004,
+      "grade": 72,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B35:D35"
+      }
+    },
+    {
+      "lower": 51.339999999999996,
+      "upper": 56,
+      "grade": 71,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B36:D36"
+      }
+    },
+    {
+      "lower": 46.669999999999995,
+      "upper": 51.33,
+      "grade": 70,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B37:D37"
+      }
+    },
+    {
+      "lower": 42.01,
+      "upper": 46.66,
+      "grade": 69,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B38:D38"
+      }
+    },
+    {
+      "lower": 37.339999999999996,
+      "upper": 42,
+      "grade": 68,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B39:D39"
+      }
+    },
+    {
+      "lower": 32.68,
+      "upper": 37.33,
+      "grade": 67,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B40:D40"
+      }
+    },
+    {
+      "lower": 28.009999999999998,
+      "upper": 32.67,
+      "grade": 66,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B41:D41"
+      }
+    },
+    {
+      "lower": 23.35,
+      "upper": 27.999999999999996,
+      "grade": 65,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B42:D42"
+      }
+    },
+    {
+      "lower": 18.68,
+      "upper": 23.34,
+      "grade": 64,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B43:D43"
+      }
+    },
+    {
+      "lower": 14.01,
+      "upper": 18.669999999999998,
+      "grade": 63,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B44:D44"
+      }
+    },
+    {
+      "lower": 9.35,
+      "upper": 14,
+      "grade": 62,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B45:D45"
+      }
+    },
+    {
+      "lower": 4.68,
+      "upper": 9.34,
+      "grade": 61,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B46:D46"
+      }
+    },
+    {
+      "lower": 0,
+      "upper": 4.67,
+      "grade": 60,
+      "source": {
+        "sheet": "HELPER",
+        "cell": "B47:D47"
+      }
+    }
+  ],
+  "descriptors": [
+    {
+      "grade": 100,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG7:AH7"
+      }
+    },
+    {
+      "grade": 99,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG8:AH8"
+      }
+    },
+    {
+      "grade": 98,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG9:AH9"
+      }
+    },
+    {
+      "grade": 97,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG10:AH10"
+      }
+    },
+    {
+      "grade": 96,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG11:AH11"
+      }
+    },
+    {
+      "grade": 95,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG12:AH12"
+      }
+    },
+    {
+      "grade": 94,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG13:AH13"
+      }
+    },
+    {
+      "grade": 93,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG14:AH14"
+      }
+    },
+    {
+      "grade": 92,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG15:AH15"
+      }
+    },
+    {
+      "grade": 91,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG16:AH16"
+      }
+    },
+    {
+      "grade": 90,
+      "label": "Advancing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG17:AH17"
+      }
+    },
+    {
+      "grade": 89,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG18:AH18"
+      }
+    },
+    {
+      "grade": 88,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG19:AH19"
+      }
+    },
+    {
+      "grade": 87,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG20:AH20"
+      }
+    },
+    {
+      "grade": 86,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG21:AH21"
+      }
+    },
+    {
+      "grade": 85,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG22:AH22"
+      }
+    },
+    {
+      "grade": 84,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG23:AH23"
+      }
+    },
+    {
+      "grade": 83,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG24:AH24"
+      }
+    },
+    {
+      "grade": 82,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG25:AH25"
+      }
+    },
+    {
+      "grade": 81,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG26:AH26"
+      }
+    },
+    {
+      "grade": 80,
+      "label": "Benchmarking",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG27:AH27"
+      }
+    },
+    {
+      "grade": 79,
+      "label": "Connecting",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG28:AH28"
+      }
+    },
+    {
+      "grade": 78,
+      "label": "Connecting",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG29:AH29"
+      }
+    },
+    {
+      "grade": 77,
+      "label": "Connecting",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG30:AH30"
+      }
+    },
+    {
+      "grade": 76,
+      "label": "Connecting",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG31:AH31"
+      }
+    },
+    {
+      "grade": 75,
+      "label": "Connecting",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG32:AH32"
+      }
+    },
+    {
+      "grade": 74,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG33:AH33"
+      }
+    },
+    {
+      "grade": 73,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG34:AH34"
+      }
+    },
+    {
+      "grade": 72,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG35:AH35"
+      }
+    },
+    {
+      "grade": 71,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG36:AH36"
+      }
+    },
+    {
+      "grade": 70,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG37:AH37"
+      }
+    },
+    {
+      "grade": 69,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG38:AH38"
+      }
+    },
+    {
+      "grade": 68,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG39:AH39"
+      }
+    },
+    {
+      "grade": 67,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG40:AH40"
+      }
+    },
+    {
+      "grade": 66,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG41:AH41"
+      }
+    },
+    {
+      "grade": 65,
+      "label": "Developing",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG42:AH42"
+      }
+    },
+    {
+      "grade": 64,
+      "label": "Emerging",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG43:AH43"
+      }
+    },
+    {
+      "grade": 63,
+      "label": "Emerging",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG44:AH44"
+      }
+    },
+    {
+      "grade": 62,
+      "label": "Emerging",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG45:AH45"
+      }
+    },
+    {
+      "grade": 61,
+      "label": "Emerging",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG46:AH46"
+      }
+    },
+    {
+      "grade": 60,
+      "label": "Emerging",
+      "source": {
+        "sheet": "HELPER",
+        "cell": "AG47:AH47"
+      }
+    }
+  ],
+  "source": {
+    "sheet": "HELPER",
+    "cell": "W10:AC10"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "N": ["IF(COUNT(D#:M#)=0,\"\",SUM(D#:M#))"],
+  "O": ["IFERROR(IF(N#=\"\",\"\",ROUND(N#/N$14*O$14,2)),\"\")"],
+  "P": ["IFERROR(IF(O#=\"\",\"\",ROUND(O#*P$14,2)),\"\")"],
+  "AA": ["IF(COUNT(Q#:Z#)=0,\"\",SUM(Q#:Z#))"],
+  "AB": ["IFERROR(IF(AA#=\"\",\"\",ROUND(AA#/AA$14*AB$14,2)),\"\")"],
+  "AC": ["IFERROR(IF(AB#=\"\",\"\",ROUND(AB#*AC$14,2)),\"\")"],
+  "AG": ["IFERROR(IF(AD#=\"\",\"\",ROUND(AD#/$AD$14*$AG$14,2)),\"\")"],
+  "AH": ["IFERROR(IF(AE#=\"\",\"\",ROUND(AE#/$AE$14*$AH$14,2)),\"\")"],
+  "AI": ["IFERROR(IF(AF#=\"\",\"\",ROUND(AF#/$AF$14*$AI$14,2)),\"\")"],
+  "AJ": [
+    "IF($AD$12=0,\"\",IF(OR(AG#<>\"\",AH#<>\"\",AI#<>\"\"),(SUM(AG#:AI#)/SUM($AG$14:$AI$14))*$AJ$14,\"\"))"
+  ],
+  "AK": ["IFERROR(IF(AJ#=\"\",\"\",ROUND(AJ#*$AK$14,2)),\"\")"],
+  "AL": [
+    "IF(AND(C#<>\"\",P#<>\"\",AC#<>\"\",$AD$12=0),SUM(P#,AC#),IF(AND(C#<>\"\",P#<>\"\",AC#<>\"\",AK#<>\"\",$D$12>0,$Q$12>0,$AD$12>0),SUM(P#,AC#,AK#),\"\"))"
+  ],
+  "AM": ["IFERROR(XLOOKUP(AL#,HELPER!$C$7:$C$47,HELPER!$D$7:$D$47,,1),\"\")"]
+}

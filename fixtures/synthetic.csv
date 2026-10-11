@@ -1,0 +1,4 @@
+Name,LRN,Sex,Written 1,Performance 1,ST1,ST2,TE
+"Example, Alex",000000000001,male,10,9,8,8,9
+"Example, Blair",000000000002,female,0,8,7,8,8
+"Example, Ellis",,unspecified,,9,,,8
